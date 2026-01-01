@@ -20,7 +20,7 @@ jobs:
 
       - name: Download FireHOL Level4 blacklist
         run: |
-          curl -o level4.txt https://iplists.firehol.org/files/firehol_level4.netset
+          curl -fsSL -o level4.txt https://iplists.firehol.org/files/firehol_level4.netset
           sed '/^#/d' level4.txt > level4_no_comments.txt
 
       - name: Convert blacklist to Mikrotik format
@@ -33,7 +33,7 @@ jobs:
         with:
           delete_tags: true
           gh_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
+          delete_releases: true
           releases_keep_latest: 0
 
       - name: Create Release
@@ -41,7 +41,6 @@ jobs:
         with:
           tag_name: FireHOL-Level4-Latest
           name: FireHOL Level4 Update
-          body: "Update on $(date)"
           files: |
             FireHOL_Level4.rsc
         env:
