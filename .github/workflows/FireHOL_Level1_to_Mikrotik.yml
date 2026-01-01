@@ -1,4 +1,4 @@
-name: FireHOL_Level1
+name: blocklist-de_List
 
 on:
   schedule:
@@ -18,16 +18,15 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: Download FireHOL Level1 blacklist
+    - name: Download blocklist-de blacklist
       run: |
-        curl -fsSL -o level1.txt https://iplists.firehol.org/files/firehol_level1.netset
-        sed '/^#/d' level1.txt > level1_no_comments.txt
+        curl -fsSL -o blacklist.txt http://lists.blocklist.de/lists/all.txt
         
     - name: Convert blacklist to Mikrotik format
-      run: |
-        echo "/ip firewall address-list" > FireHOL_Level1.rsc
-        awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist1\"" }' level1_no_comments.txt >> FireHOL_Level1.rsc
-
+      run: |     
+        echo "/ip firewall address-list" > blocklist-de_List.rsc        
+        awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"blocklist-de\"" }' blacklist.txt >> blocklist-de_List.rsc
+        
     - name: Delete Old Release
       uses: ophub/delete-releases-workflows@main
       with:
@@ -39,10 +38,10 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: FireHOL-Level1-Latest
-        name: FireHOL Level1 Update
+        tag_name: blocklist-de-latest
+        name: Blocklist-de Update 
         files: |
-          FireHOL_Level1.rsc
+          blocklist-de_List.rsc
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
