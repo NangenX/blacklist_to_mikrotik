@@ -20,7 +20,7 @@ jobs:
       
     - name: Download blocklist-de blacklist
       run: |
-        curl -o blacklist.txt http://lists.blocklist.de/lists/all.txt
+        curl -fsSL -o blacklist.txt http://lists.blocklist.de/lists/all.txt
         
     - name: Convert blacklist to Mikrotik format
       run: |     
@@ -32,7 +32,7 @@ jobs:
       with:
         delete_tags: true
         gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_release: true
+        delete_releases: true
         releases_keep_latest: 0
 
     - name: Create Release
