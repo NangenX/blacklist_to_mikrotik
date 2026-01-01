@@ -1,4 +1,4 @@
-name: Sichuan_IP
+name: FireHOL_Level2
 
 on:
   schedule:
@@ -18,31 +18,31 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: Download Sichuan IP list
+    - name: Download FireHOL Level2 blacklist
       run: |
-        curl -o sichuan.txt https://metowolf.github.io/iplist/data/cncity/510000.txt
-        sed '/^#/d' sichuan.txt > sichuan_no_comments.txt
+        curl -fsSL -o level2.txt https://iplists.firehol.org/files/firehol_level2.netset
+        sed '/^#/d' level2.txt > level2_no_comments.txt
         
     - name: Convert blacklist to Mikrotik format
       run: |
-        echo "/ip firewall address-list" > Sichuan.rsc
-        awk '{ sub(/\r$/, ""); if (NF) print "add list=Sichuan address=" $1 " comment=\"Sichuan\"" }' sichuan_no_comments.txt >> Sichuan.rsc
+        echo "/ip firewall address-list" > FireHOL_Level2.rsc
+        awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist2\"" }' level2_no_comments.txt >> FireHOL_Level2.rsc
 
     - name: Delete Old Release
       uses: ophub/delete-releases-workflows@main
       with:
         delete_tags: true
         gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_release: true
+        delete_releases: true
         releases_keep_latest: 0
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: Sichuan-IP-Latest
-        name: Sichuan IP Update
+        tag_name: FireHOL-Level2-Latest
+        name: FireHOL Level2 Update
         files: |
-          Sichuan.rsc
+          FireHOL_Level2.rsc
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -53,4 +53,3 @@ jobs:
         repository: ${{ github.repository }}
         retain_days: 7
         keep_minimum_runs: 6
-
