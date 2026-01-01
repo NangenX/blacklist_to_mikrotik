@@ -28,6 +28,21 @@ jobs:
         echo "/ip firewall address-list" > FireHOL_Level2.rsc
         awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist2\"" }' level2_no_comments.txt >> FireHOL_Level2.rsc
 
+    - name: Force Push to Keep History Clean
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "github-action@users.noreply.github.com"
+        
+        # 关键操作：使用 --amend 修改上一次提交，而不是创建新提交
+        # 或者重新初始化一个孤立分支推上去
+        git add FireHOL_Level2.rsc
+        
+        # 即使文件没变也提交，确保时间戳更新
+        git commit --allow-empty -m "Update FireHOL Level2: $(date -u)"
+        
+        # 强制推送覆盖远程 main 分支
+        git push origin main --force
+
     - name: Delete Old Release
       uses: ophub/delete-releases-workflows@main
       with:
