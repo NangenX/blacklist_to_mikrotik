@@ -1,0 +1,56 @@
+name: Sichuan_IP
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 每6个小时运行
+  workflow_dispatch:
+
+jobs:
+  update-blacklist:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Download Sichuan IP list
+      run: |
+        curl -o sichuan.txt https://metowolf.github.io/iplist/data/cncity/510000.txt
+        sed '/^#/d' sichuan.txt > sichuan_no_comments.txt
+        
+    - name: Convert blacklist to Mikrotik format
+      run: |
+        echo "/ip firewall address-list" > Sichuan.rsc
+        awk '{ sub(/\r$/, ""); if (NF) print "add list=Sichuan address=" $1 " comment=\"Sichuan\"" }' sichuan_no_comments.txt >> Sichuan.rsc
+
+    - name: Delete Old Release
+      uses: ophub/delete-releases-workflows@main
+      with:
+        delete_tags: true
+        gh_token: ${{ secrets.GITHUB_TOKEN }}
+        delete_release: true
+        releases_keep_latest: 0
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: Sichuan-IP-Latest
+        name: Sichuan IP Update
+        files: |
+          Sichuan.rsc
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete old workflow runs
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        retain_days: 7
+        keep_minimum_runs: 6
+

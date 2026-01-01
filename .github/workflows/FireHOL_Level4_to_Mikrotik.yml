@@ -1,0 +1,56 @@
+name: FireHOL_Level4
+
+on:
+  schedule:
+    - cron: '10 */6 * * *' # 每6个小时运行
+  workflow_dispatch:
+
+jobs:
+  update-blacklist:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download FireHOL Level4 blacklist
+        run: |
+          curl -o level4.txt https://iplists.firehol.org/files/firehol_level4.netset
+          sed '/^#/d' level4.txt > level4_no_comments.txt
+
+      - name: Convert blacklist to Mikrotik format
+        run: |
+          echo "/ip firewall address-list" > FireHOL_Level4.rsc
+          awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist4\"" }' level4_no_comments.txt >> FireHOL_Level4.rsc
+
+      - name: Delete Old Releases
+        uses: ophub/delete-releases-workflows@main
+        with:
+          delete_tags: true
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+          releases_keep_latest: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: FireHOL-Level4-Latest
+          name: FireHOL Level4 Update
+          body: "Update on $(date)"
+          files: |
+            FireHOL_Level4.rsc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 6

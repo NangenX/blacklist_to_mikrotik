@@ -1,0 +1,54 @@
+name: blocklist-de_List
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 每6个小时运行
+  workflow_dispatch:
+
+jobs:
+  update-blacklist:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Download blocklist-de blacklist
+      run: |
+        curl -o blacklist.txt http://lists.blocklist.de/lists/all.txt
+        
+    - name: Convert blacklist to Mikrotik format
+      run: |     
+        echo "/ip firewall address-list" > blocklist-de_List.rsc        
+        awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"blocklist-de\"" }' blacklist.txt >> blocklist-de_List.rsc
+        
+    - name: Delete Old Release
+      uses: ophub/delete-releases-workflows@main
+      with:
+        delete_tags: true
+        gh_token: ${{ secrets.GITHUB_TOKEN }}
+        delete_release: true
+        releases_keep_latest: 0
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: blocklist-de-latest
+        name: Blocklist-de Update 
+        files: |
+          blocklist-de_List.rsc
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete old workflow runs
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        retain_days: 7
+        keep_minimum_runs: 6
