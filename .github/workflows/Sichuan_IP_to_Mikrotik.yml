@@ -33,7 +33,7 @@ jobs:
       with:
         delete_tags: true
         gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_release: true
+        delete_releases: true
         releases_keep_latest: 0
         
     - name: Create Release
@@ -53,4 +53,5 @@ jobs:
         repository: ${{ github.repository }}
         retain_days: 7
         keep_minimum_runs: 6
+
 
