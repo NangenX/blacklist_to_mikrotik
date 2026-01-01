@@ -1,8 +1,8 @@
-name: FireHOL_Level2
+name: FireHOL_Level4
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # 每6个小时运行
+    - cron: '10 */6 * * *' # 每6个小时运行
   workflow_dispatch:
 
 jobs:
@@ -13,43 +13,43 @@ jobs:
       actions: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-      
-    - name: Download FireHOL Level2 blacklist
-      run: |
-        curl -fsSL -o level2.txt https://iplists.firehol.org/files/firehol_level2.netset
-        sed '/^#/d' level2.txt > level2_no_comments.txt
-        
-    - name: Convert blacklist to Mikrotik format
-      run: |
-        echo "/ip firewall address-list" > FireHOL_Level2.rsc
-        awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist2\"" }' level2_no_comments.txt >> FireHOL_Level2.rsc
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Delete Old Release
-      uses: ophub/delete-releases-workflows@main
-      with:
-        delete_tags: true
-        gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_releases: true
-        releases_keep_latest: 0
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: FireHOL-Level2-Latest
-        name: FireHOL Level2 Update
-        files: |
-          FireHOL_Level2.rsc
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download FireHOL Level4 blacklist
+        run: |
+          curl -fsSL -o level4.txt https://iplists.firehol.org/files/firehol_level4.netset
+          sed '/^#/d' level4.txt > level4_no_comments.txt
 
-    - name: Delete old workflow runs
-      uses: Mattraks/delete-workflow-runs@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ github.repository }}
-        retain_days: 7
-        keep_minimum_runs: 6
+      - name: Convert blacklist to Mikrotik format
+        run: |
+          echo "/ip firewall address-list" > FireHOL_Level4.rsc
+          awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist4\"" }' level4_no_comments.txt >> FireHOL_Level4.rsc
+
+      - name: Delete Old Releases
+        uses: ophub/delete-releases-workflows@main
+        with:
+          delete_tags: true
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_releases: true
+          releases_keep_latest: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: FireHOL-Level4-Latest
+          name: FireHOL Level4 Update
+          files: |
+            FireHOL_Level4.rsc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 6
