@@ -27,14 +27,6 @@ jobs:
         echo "/ip firewall address-list" > blocklist-de_List.rsc        
         awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"blocklist-de\"" }' blacklist.txt >> blocklist-de_List.rsc
         
-    - name: Delete Old Release
-      uses: ophub/delete-releases-workflows@main
-      with:
-        delete_tags: true
-        gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_releases: true
-        releases_keep_latest: 0
-
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:

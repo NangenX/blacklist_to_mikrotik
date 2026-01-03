@@ -27,14 +27,6 @@ jobs:
       run: |
         echo "/ip firewall address-list" > FireHOL_Level2.rsc
         awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist2\"" }' level2_no_comments.txt >> FireHOL_Level2.rsc
-
-    - name: Delete Old Release
-      uses: ophub/delete-releases-workflows@main
-      with:
-        delete_tags: true
-        gh_token: ${{ secrets.GITHUB_TOKEN }}
-        delete_releases: true
-        releases_keep_latest: 0
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
