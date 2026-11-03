@@ -1,10 +1,18 @@
 # blacklist_to_mikrotik
 
+**简体中文** | [English](README.en.md)
+
 把公开的 IP 黑名单 / 国家 IP 段自动转换成 MikroTik RouterOS 的 `address-list` 脚本（`.rsc`），由 GitHub Actions 定时抓取、转换并发布到 Release，路由器直接用 `/tool fetch` + `/import` 即可更新。
 
-[![FireHOL Level1](https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level1_to_Mikrotik.yml/badge.svg)](https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level1_to_Mikrotik.yml)
-[![最近构建](https://img.shields.io/github/release-date/NangenX/blacklist_to_mikrotik?label=%E6%9C%80%E8%BF%91%E6%9E%84%E5%BB%BA)](https://github.com/NangenX/blacklist_to_mikrotik/releases)
-[![Last commit](https://img.shields.io/github/last-commit/NangenX/blacklist_to_mikrotik)](https://github.com/NangenX/blacklist_to_mikrotik/commits/main)
+<p>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level1_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level1_to_Mikrotik.yml/badge.svg" alt="FireHOL Level1"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level2_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level2_to_Mikrotik.yml/badge.svg" alt="FireHOL Level2"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level4_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/FireHOL_Level4_to_Mikrotik.yml/badge.svg" alt="FireHOL Level4"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/blocklist-de_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/blocklist-de_to_Mikrotik.yml/badge.svg" alt="blocklist.de"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/China_IP_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/China_IP_to_Mikrotik.yml/badge.svg" alt="China IP"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/Sichuan_IP_to_Mikrotik.yml"><img src="https://github.com/NangenX/blacklist_to_mikrotik/actions/workflows/Sichuan_IP_to_Mikrotik.yml/badge.svg" alt="Sichuan IP"></a>
+  <a href="https://github.com/NangenX/blacklist_to_mikrotik/releases"><img src="https://img.shields.io/github/release-date/NangenX/blacklist_to_mikrotik?label=%E6%9C%80%E8%BF%91%E6%9E%84%E5%BB%BA" alt="最近构建"></a>
+</p>
 
 ## 提供的数据
 
@@ -93,6 +101,8 @@ https://github.com/NangenX/blacklist_to_mikrotik/releases/download/Sichuan-IP-La
 
 所有 workflow 都支持在 Actions 页面手动 `Run workflow`。
 
+页面顶部的状态徽章取自各 workflow 在 `main` 分支上最近一次运行的结果，能直接看出哪个列表的抓取失败了。
+
 ## 自定义
 
 - **改频率**：编辑 workflow 里的 `cron`（UTC 时间）。`0 */6 * * *` 是每 6 小时，`0 0 1 * *` 是每月 1 日 00:00 UTC。
@@ -106,10 +116,10 @@ https://github.com/NangenX/blacklist_to_mikrotik/releases/download/Sichuan-IP-La
 先确认 `/tool fetch` 是否成功（`/file print` 看文件大小），RouterOS 7 以下对 302 跳转支持不完善，建议升级到 7.x。
 
 **条目数比上游文件少？**
-转换时已剔除 `#` 注释行和空行，只保留可用的 IP/ CIDR，属正常现象。
+转换时已剔除 `#` 注释行和空行，只保留可用的 IP / CIDR，属正常现象。
 
 **FireHOL Level 4 会不会太重？**
-Level 4 接近 18 万条，导入和匹配都吃 CPU/内存，家用设备建议从 Level 1 开始。
+Level 4 接近 18 万条，导入和匹配都吃 CPU / 内存，家用设备建议从 Level 1 开始。
 
 **Releases 页面的日期为什么每次都在变？**
 这是刻意设计的：每次构建都会重建 Release 以刷新发布时间，资产文件名与 URL 不变，见上文「工作原理」。
