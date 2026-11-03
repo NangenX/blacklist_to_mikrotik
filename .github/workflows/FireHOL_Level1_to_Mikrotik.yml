@@ -5,6 +5,10 @@ on:
     - cron: '0 */6 * * *' # 每6个小时运行
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-release
+  cancel-in-progress: false
+
 jobs:
   update-blacklist:
     runs-on: ubuntu-latest
@@ -23,16 +27,31 @@ jobs:
         curl -fsSL -o level1.txt https://iplists.firehol.org/files/firehol_level1.netset
         sed '/^#/d' level1.txt > level1_no_comments.txt
         
+    - name: Stamp build time
+      run: echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
+
     - name: Convert blacklist to Mikrotik format
       run: |
-        echo "/ip firewall address-list" > FireHOL_Level1.rsc
+        {
+          echo "# FireHOL Level1 | updated: $BUILD_TIME"
+          echo "/ip firewall address-list"
+        } > FireHOL_Level1.rsc
         awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"Blocklist1\"" }' level1_no_comments.txt >> FireHOL_Level1.rsc
+        echo "ENTRIES=$(grep -c '^add ' FireHOL_Level1.rsc || echo 0)" >> "$GITHUB_ENV"
+
+    - name: Refresh release timestamp
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release delete "FireHOL-Level1-Latest" --yes --cleanup-tag=false || true
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: FireHOL-Level1-Latest
         name: FireHOL Level1 Update
+        body: |
+          自动构建（UTC）：${{ env.BUILD_TIME }}
+          数据源：FireHOL Level1，条目数：${{ env.ENTRIES }}
         files: |
           FireHOL_Level1.rsc
       env:

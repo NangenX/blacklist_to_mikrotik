@@ -5,6 +5,10 @@ on:
     - cron: '0 */6 * * *' # 每6个小时运行
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-release
+  cancel-in-progress: false
+
 jobs:
   update-blacklist:
     runs-on: ubuntu-latest
@@ -23,16 +27,31 @@ jobs:
         curl -o sichuan.txt https://metowolf.github.io/iplist/data/cncity/510000.txt
         sed '/^#/d' sichuan.txt > sichuan_no_comments.txt
         
+    - name: Stamp build time
+      run: echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
+
     - name: Convert blacklist to Mikrotik format
       run: |
-        echo "/ip firewall address-list" > Sichuan.rsc
+        {
+          echo "# Sichuan IP | updated: $BUILD_TIME"
+          echo "/ip firewall address-list"
+        } > Sichuan.rsc
         awk '{ sub(/\r$/, ""); if (NF) print "add list=Sichuan address=" $1 " comment=\"Sichuan\"" }' sichuan_no_comments.txt >> Sichuan.rsc
+        echo "ENTRIES=$(grep -c '^add ' Sichuan.rsc || echo 0)" >> "$GITHUB_ENV"
         
+    - name: Refresh release timestamp
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release delete "Sichuan-IP-Latest" --yes --cleanup-tag=false || true
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: Sichuan-IP-Latest
         name: Sichuan IP Update
+        body: |
+          自动构建（UTC）：${{ env.BUILD_TIME }}
+          数据源：Sichuan IP，条目数：${{ env.ENTRIES }}
         files: |
           Sichuan.rsc
       env:

@@ -5,6 +5,10 @@ on:
     - cron: '0 */6 * * *' # 每6个小时运行
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-release
+  cancel-in-progress: false
+
 jobs:
   update-blacklist:
     runs-on: ubuntu-latest
@@ -22,16 +26,31 @@ jobs:
       run: |
         curl -fsSL -o blacklist.txt http://lists.blocklist.de/lists/all.txt
         
+    - name: Stamp build time
+      run: echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
+
     - name: Convert blacklist to Mikrotik format
       run: |     
-        echo "/ip firewall address-list" > blocklist-de_List.rsc        
+        {
+          echo "# blocklist.de | updated: $BUILD_TIME"
+          echo "/ip firewall address-list"
+        } > blocklist-de_List.rsc
         awk '{ sub(/\r$/, ""); if (NF) print "add list=blocklist address=" $1 " comment=\"blocklist-de\"" }' blacklist.txt >> blocklist-de_List.rsc
+        echo "ENTRIES=$(grep -c '^add ' blocklist-de_List.rsc || echo 0)" >> "$GITHUB_ENV"
         
+    - name: Refresh release timestamp
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release delete "blocklist-de-latest" --yes --cleanup-tag=false || true
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: blocklist-de-latest
         name: Blocklist-de Update 
+        body: |
+          自动构建（UTC）：${{ env.BUILD_TIME }}
+          数据源：blocklist.de，条目数：${{ env.ENTRIES }}
         files: |
           blocklist-de_List.rsc
       env:
